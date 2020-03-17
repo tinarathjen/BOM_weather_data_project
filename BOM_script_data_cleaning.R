@@ -29,12 +29,6 @@ mutate(Rainfall = na_if(Rainfall,"-"))
 
 
 
-
-#new file with grouped by Station_number
-
-Bom_data_grouped <- 
-  Bom_data_sep_temp_withNA %>% group_by(Station_number)
-
 # create new variables removing NA values
 
 Bom_data_remove_NA <- Bom_data_grouped %>% 
@@ -85,10 +79,57 @@ BOM_Data %>%
 #bill also overwrites file name instead of creating new variable
 
 
+#Question 2
+#Which month saw the lowest average daily 
+#temperature difference?
+
+#separate Temp_min_max into two separate columns
+#(same as question 1)
+
+#separating Min and max temps
+BOM_data_sep_temp <- 
+  separate(BOM_data,Temp_min_max, 
+           into=c("temp_min", "temp_max"), sep= "/")
+
+#changing every temp to a numeric character or NA
+BOM_data_numeric <- BOM_data_sep_temp %>% 
+  mutate(temp_min = as.numeric(temp_min)) %>% 
+  mutate(temp_max = as.numeric(temp_max)) 
+
+#removing rows with an NA in max or min temp
+BOM_data_numeric_minus_NA <- BOM_data_numeric %>% 
+  filter(temp_min!="NA") %>% 
+  filter(temp_max!="NA")
+
+BOM_data_daily_temp_diff <- BOM_data_numeric_minus_NA %>% 
+  mutate(temp_diff =temp_max-temp_min)
+
+BOM_grouped_month <- group_by(BOM_data_daily_temp_diff,Month)
+
+BOM_data_mean_temp_diff <- 
+  summarise(BOM_grouped_month,
+            mean_temp_diff = mean(temp_diff))
+
+Q2_answer <- arrange(BOM_data_mean_temp_diff, mean_temp_diff)
+
+
+#An attempt at a more elegant solution (not working yet)
+Answer_Q2 <- BOM_data %>%  
+  separate(Temp_min_max, 
+           into=c("temp_min", "temp_max"), sep= "/")%>% 
+  mutate(temp_min = as.numeric(temp_min)) %>% 
+  mutate(temp_max = as.numeric(temp_max))  %>% 
+  filter(temp_min!="NA") %>% 
+  filter(temp_max!="NA") %>% 
+  mutate(temp_diff =temp_max-temp_min) %>% 
+  group_by(Month) %>% 
+  summarise(mean_temp_diff = mean(temp_diff)) %>% 
+arrange(BOM_data_mean_temp_diff, mean_temp_diff)
 
 
 
 
 
 
+  
   
