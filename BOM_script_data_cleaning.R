@@ -9,6 +9,9 @@ BOM_data <- read_csv("Rawdata/BOM_data.csv")
 view(BOM_data)
 view(BOM_stations)
 
+
+#Question 1
+
 #separate Temp_min_max into two separate columns
 
 BOM_data_sep_temp <- 
@@ -24,8 +27,7 @@ mutate(temp_max = na_if(temp_max,"-")) %>%
 mutate(temp_min = na_if(temp_min,"-")) %>% 
 mutate(Rainfall = na_if(Rainfall,"-"))
 
-Bom_data_sep_temp_withNA
-BOM_data
+
 
 
 #new file with grouped by Station_number
@@ -60,10 +62,27 @@ View(BOM_data)
 
 
 #an alternate method from Bill
+#Very elegant
+#Bill also overwrites file name instead of 
+#creating new variable
 
 
+BOM_Data <- read_csv("Data/Raw_Data/BOM_data.csv")
 
-#bill also overwrites file name instead of
+separate(BOM_Data, Temp_min_max, into = c("T_Min", "T_Max"), sep = "/") -> BOM_Data 
+BOM_Data %>%
+  mutate(T_Min = as.numeric(T_Min)) %>% 
+  mutate(T_Max = as.numeric(T_Max)) %>% 
+  mutate(Rainfall = as.numeric(Rainfall))-> BOM_Data
+
+BOM_Data %>% 
+  group_by(Station_number) %>%
+  summarise(MinDays = sum(!is.na(T_Min)),
+            MaxDays = sum(!is.na(T_Max)),
+            RainyDays = sum(!is.na(Rainfall)))
+
+
+#bill also overwrites file name instead of creating new variable
 
 
 
