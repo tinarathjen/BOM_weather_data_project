@@ -38,7 +38,7 @@ Bom_data_remove_NA <- Bom_data_grouped %>%
 
 #or I can use the following
 Bom_data_remove_NA <- 
-  filter(Bom_data_grouped, Rainfall!="NA",
+  filter(Bom_data_sep_temp_withNA, Rainfall!="NA",
          temp_min!="NA", temp_max!="NA")
 
 #new file with grouped by Station_number
@@ -87,37 +87,14 @@ BOM_Data %>%
 #(same as question 1)
 
 #separating Min and max temps
-BOM_data_sep_temp <- 
-  separate(BOM_data,Temp_min_max, 
-           into=c("temp_min", "temp_max"), sep= "/")
-
-#changing every temp to a numeric character or NA
-BOM_data_numeric <- BOM_data_sep_temp %>% 
-  mutate(temp_min = as.numeric(temp_min)) %>% 
-  mutate(temp_max = as.numeric(temp_max)) 
-
-#removing rows with an NA in max or min temp
-BOM_data_numeric_minus_NA <- BOM_data_numeric %>% 
-  filter(temp_min!="NA") %>% 
-  filter(temp_max!="NA")
-
-BOM_data_daily_temp_diff <- BOM_data_numeric_minus_NA %>% 
-  mutate(temp_diff =temp_max-temp_min)
-
-BOM_grouped_month <- group_by(BOM_data_daily_temp_diff,Month)
-
-BOM_data_mean_temp_diff <- 
-  summarise(BOM_grouped_month,
-            mean_temp_diff = mean(temp_diff))
-
-Q2_answer <- arrange(BOM_data_mean_temp_diff, mean_temp_diff)
+Q2_answer
 
 
 #An attempt at a more elegant solution (not working yet)
 Answer_Q2 <- BOM_data %>%  
   separate(Temp_min_max, 
            into=c("temp_min", "temp_max"), sep= "/")%>% 
-  mutate(temp_min = as.numeric(temp_min)) %>% 
+  c 
   mutate(temp_max = as.numeric(temp_max))  %>% 
   filter(temp_min!="NA") %>% 
   filter(temp_max!="NA") %>% 
@@ -128,8 +105,57 @@ arrange(BOM_data_mean_temp_diff, mean_temp_diff)
 
 
 
+#Day6
+# Question 3 Which state saw the lowest 
+#average daily temperature difference?
+
+#Two step process to get a file that has the stations as the first column
+# Step 1 is to make a long file
+#Step 2 is to amke a wide file but 
+#use the station_id as the anchor
+View(BOM_stations)
+
+BOM_stations_long <- gather(BOM_stations, 
+key="Station_number", value="value",2:21)
+
+view(BOM_stations_long)
+
+BOM_stations_new <- spread(BOM_stations_long,
+                            key="info", value="value")
+#Changing Station_number in file to numeric
+
+BOM_stations_new <- 
+  mutate(BOM_stations_new, Station_number=as.numeric(Station_number))
+
+#merging
+BOM_merge <- full_join(BOM_data_numeric_minus_NA,
+                       BOM_stations_new, "Station_number")
+
+view(BOM_merge)
+
+#Daily change in temperature
+
+BOM_merge2 <- mutate(BOM_merge,temp_diff =temp_max-temp_min)
 
 
+BOM_merge3 <-  group_by(BOM_merge2,state)
 
-  
+BOM_merge4 <- summarise(BOM_merge3,mean_temp_diff = mean(temp_diff)) 
+
+#trying the same using pipes
+
+BOM_merge<- gather(BOM_stations, key="Station_number", 
+                       value="value",2:21) %>% 
+spread(key="info", value="value") %>% 
+  mutate(Station_number=as.numeric(Station_number)) 
+
+Answer3 <- full_join(BOM_data_numeric_minus_NA,BOM_stations_new, "Station_number") %>% 
+ mutate(temp_diff =temp_max-temp_min) %>% 
+  group_by(state) %>% 
+summarise(mean_temp_diff = mean(temp_diff)) 
+
+#Question4
+#Does the westmost (lowest longitude) or eastmost (highest longitude) weather station 
+#in our dataset have a higher average solar exposure?
+
   
