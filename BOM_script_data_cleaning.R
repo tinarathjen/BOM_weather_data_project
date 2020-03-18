@@ -11,6 +11,9 @@ view(BOM_stations)
 
 
 #Question 1
+#For each station, how many days have a minimum 
+#temperature, a maximum temperature and a 
+#rainfall measurement recorded?
 
 #separate Temp_min_max into two separate columns
 
@@ -18,7 +21,8 @@ BOM_data_sep_temp <-
 separate(BOM_data,Temp_min_max, 
 into=c("temp_min", "temp_max"), sep= "/")
 
-#Converting - to NA in temp and Rainfall columns
+#Converting "-" to NA in temp and Rainfall columns 
+#(would be better to use as.numeric)
 
 
 Bom_data_sep_temp_withNA <- 
@@ -31,7 +35,7 @@ mutate(Rainfall = na_if(Rainfall,"-"))
 
 # create new variables removing NA values
 
-Bom_data_remove_NA <- Bom_data_grouped %>% 
+Bom_data_remove_NA <- Bom_data_sep_temp_withNA %>% 
   filter(Rainfall!="NA") %>% 
   filter(temp_min!="NA") %>% 
   filter(temp_max!="NA")
@@ -76,17 +80,12 @@ BOM_Data %>%
             RainyDays = sum(!is.na(Rainfall)))
 
 
-#bill also overwrites file name instead of creating new variable
-
-
 #Question 2
 #Which month saw the lowest average daily 
 #temperature difference?
 
 #separate Temp_min_max into two separate columns
 #(same as question 1)
-
-#separating Min and max temps
 BOM_data_sep_temp <- 
   separate(BOM_data,Temp_min_max, 
            into=c("temp_min", "temp_max"), sep= "/")
@@ -101,15 +100,19 @@ BOM_data_numeric_minus_NA <- BOM_data_numeric %>%
   filter(temp_min!="NA") %>% 
   filter(temp_max!="NA")
 
+#calculate new variable temp_diff
 BOM_data_daily_temp_diff <- BOM_data_numeric_minus_NA %>% 
   mutate(temp_diff =temp_max-temp_min)
 
+#grouped by month
 BOM_grouped_month <- group_by(BOM_data_daily_temp_diff,Month)
 
+#calculate mean temp_diff and create a new column of data
 BOM_data_mean_temp_diff <- 
   summarise(BOM_grouped_month,
             mean_temp_diff = mean(temp_diff))
 
+#Arranging data in ascending order
 Q2_answer <- arrange(BOM_data_mean_temp_diff, mean_temp_diff)
  
 
@@ -190,7 +193,7 @@ BOM_merge <- full_join(BOM_data_numeric_minus_NA,BOM_stations_new, "Station_numb
   
 #changes Solar_exposure to numeric form
 BOM_merge2 <- 
-  mutate(Solar_exposure=as.numeric(Solar_exposure))
+  mutate(BOM_merge, Solar_exposure=as.numeric(Solar_exposure))
 #removing rows with solar exposure as NA
 BOM_merge3 <- filter(BOM_merge2, Solar_exposure!="NA")
 #group by longitude
@@ -203,15 +206,26 @@ BOM_merge6 <- arrange(BOM_merge5, lon)
 View(BOM_merge6)
 head(BOM_merge6,1)
 tail(BOM_merge6,1)
-
+View(filter(BOM_merge6, lon == max(lon)|lon==min(lon)))
 #or
 
 Q4_answer <- full_join(BOM_data_numeric_minus_NA,
                        BOM_stations_new, "Station_number") %>% 
-  mutate(Solar_exposure=as.numeric(Solar_exposure)) %>% 
+  mutate(Solar_exposure=as.numeric(Solar_exposure)) %>%
+  mutate(lon=as.numeric(lon)) %>%
 filter( Solar_exposure!="NA") %>% group_by(lon) %>% 
 summarise(mean_Solar_exposure=mean(Solar_exposure)) %>% 
 arrange(lon)
 Q4_answer
 head(Q4_answer,1)
 tail(Q4_answer,1)
+View(str(Q4_answer))
+View(filter(Q4_answer, lon == max(lon)|lon==min(lon)))
+
+
+BOM_data <- read_csv('data/BOM_data.csv')
+BOM_stations <- read_csv('data/BOM_stations.csv')
+BOM_data
+BOM_stations
+
+
