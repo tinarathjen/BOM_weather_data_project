@@ -87,15 +87,40 @@ BOM_Data %>%
 #(same as question 1)
 
 #separating Min and max temps
-Q2_answer
+BOM_data_sep_temp <- 
+  separate(BOM_data,Temp_min_max, 
+           into=c("temp_min", "temp_max"), sep= "/")
+
+#changing every temp to a numeric character or NA
+BOM_data_numeric <- BOM_data_sep_temp %>% 
+  mutate(temp_min = as.numeric(temp_min)) %>% 
+  mutate(temp_max = as.numeric(temp_max)) 
+
+#removing rows with an NA in max or min temp
+BOM_data_numeric_minus_NA <- BOM_data_numeric %>% 
+  filter(temp_min!="NA") %>% 
+  filter(temp_max!="NA")
+
+BOM_data_daily_temp_diff <- BOM_data_numeric_minus_NA %>% 
+  mutate(temp_diff =temp_max-temp_min)
+
+BOM_grouped_month <- group_by(BOM_data_daily_temp_diff,Month)
+
+BOM_data_mean_temp_diff <- 
+  summarise(BOM_grouped_month,
+            mean_temp_diff = mean(temp_diff))
+
+Q2_answer <- arrange(BOM_data_mean_temp_diff, mean_temp_diff)
+ 
+
 
 
 #An attempt at a more elegant solution (not working yet)
-Answer_Q2 <- BOM_data %>%  
+BOM_data2<- BOM_data %>%  
   separate(Temp_min_max, 
-           into=c("temp_min", "temp_max"), sep= "/")%>% 
-  c 
+           into=c("temp_min", "temp_max"), sep= "/") %>% 
   mutate(temp_max = as.numeric(temp_max))  %>% 
+  mutate(temp_min = as.numeric(temp_min)) %>% 
   filter(temp_min!="NA") %>% 
   filter(temp_max!="NA") %>% 
   mutate(temp_diff =temp_max-temp_min) %>% 
@@ -104,6 +129,8 @@ Answer_Q2 <- BOM_data %>%
 arrange(BOM_data_mean_temp_diff, mean_temp_diff)
 
 
+
+BOM_data2
 
 #Day6
 # Question 3 Which state saw the lowest 
@@ -155,7 +182,36 @@ Answer3 <- full_join(BOM_data_numeric_minus_NA,BOM_stations_new, "Station_number
 summarise(mean_temp_diff = mean(temp_diff)) 
 
 #Question4
-#Does the westmost (lowest longitude) or eastmost (highest longitude) weather station 
+#Does the westmost (lowest longitude) or 
+#eastmost (highest longitude) weather station 
 #in our dataset have a higher average solar exposure?
-
+#merge the data sets again
+BOM_merge <- full_join(BOM_data_numeric_minus_NA,BOM_stations_new, "Station_number") 
   
+#changes Solar_exposure to numeric form
+BOM_merge2 <- 
+  mutate(Solar_exposure=as.numeric(Solar_exposure))
+#removing rows with solar exposure as NA
+BOM_merge3 <- filter(BOM_merge2, Solar_exposure!="NA")
+#group by longitude
+BOM_merge4 <- group_by(BOM_merge3,lon)
+#calculate mean Solar exposure
+BOM_merge5 <- summarise(BOM_merge4, mean_Solar_exposure=mean(Solar_exposure))
+#arrange according to longitude in ascending order
+BOM_merge6 <- arrange(BOM_merge5, lon)
+#view answers, lowest lon is West, highest lon is East
+View(BOM_merge6)
+head(BOM_merge6,1)
+tail(BOM_merge6,1)
+
+#or
+
+Q4_answer <- full_join(BOM_data_numeric_minus_NA,
+                       BOM_stations_new, "Station_number") %>% 
+  mutate(Solar_exposure=as.numeric(Solar_exposure)) %>% 
+filter( Solar_exposure!="NA") %>% group_by(lon) %>% 
+summarise(mean_Solar_exposure=mean(Solar_exposure)) %>% 
+arrange(lon)
+Q4_answer
+head(Q4_answer,1)
+tail(Q4_answer,1)
