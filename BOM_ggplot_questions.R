@@ -120,17 +120,21 @@ rough_rainfall_plot <- ggplot(data=BOM_mean_monthly_rainfall, mapping=aes(x=Mont
   geom_line(size=1)+scale_colour_discrete()+ 
   facet_wrap(~state)
   
-  
+BOM_Jan <- filter(BOM_mean_monthly_rainfall,Month==1)
+BOM_July <- filter(BOM_mean_monthly_rainfall,Month==7)
  
 
-rainfall_plot <- rough_rainfall_plot+labs(title="Average monthly rainfall per station", 
+#rainfall_plot <- 
+rough_rainfall_plot+labs(title="Average monthly rainfall per station", 
                          y="Average Monthly Rainfall (mm)",
                          x="Month",
                          colour="Station location",
                          caption="SOURCE:BOM meterological data")+
   theme_bw()+
-  scale_x_continuous(breaks = c(1, 4, 7,10),
-  label = c("Jan", "Apr", "July","Oct"))
+  scale_x_continuous(breaks = c(1, 4, 7,10), label = c("Jan", "Apr", "July","Oct"))
+ )
+
+
 
 ggsave(filename="Data/BOM_fig2.png", plot=rainfall_plot, 
        width=36, height=30, dpi=300, units="cm")
