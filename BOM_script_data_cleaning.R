@@ -1,6 +1,8 @@
 #loading tidyverse
 
 library(tidyverse)
+library(lubridate)
+setwd("C:/Users/rat05a/DATA School FOCUS/BOM_weather_data_project/")
 
 #reading in data files
 
@@ -55,8 +57,7 @@ Bom_data_number_per_station <-
   summarise(Bom_data_grouped, Days_per_station=n())
 
 
-view(Bom_data_number_per_station)
-View(BOM_data)
+
 
 
 #an alternate method from Bill
@@ -118,7 +119,7 @@ Q2_answer <- arrange(BOM_data_mean_temp_diff, mean_temp_diff)
 
 
 
-#An attempt at a more elegant solution (not working yet)
+#An attempt at a more elegant solution 
 BOM_data2<- BOM_data %>%  
   separate(Temp_min_max, 
            into=c("temp_min", "temp_max"), sep= "/") %>% 
@@ -228,4 +229,45 @@ BOM_stations <- read_csv('data/BOM_stations.csv')
 BOM_data
 BOM_stations
 
+
+#New Question
+#For the Perth station (ID 9225), produce three scatter plots showing the relationship 
+#between the maximum temperature and each other measurement recorded 
+#(minimum temperature, rainfall and solar exposure).
+
+Bomdata9225 <- filter(BOM_data_sep_temp, Station_number=="9225") %>%
+  mutate(temp_min = as.numeric(temp_min)) %>% 
+  mutate(temp_max = as.numeric(temp_max)) %>% 
+  mutate(Rainfall = as.numeric(Rainfall)) %>% 
+  mutate(Solar_exposure = as.numeric(Solar_exposure))
+
+#use lubridate to join dates
+
+Bomdata9225date <- Bomdata9225%>%
+  mutate(date = make_date(Year, Month, Day))
+
+#mapping
+ggplot(data=Bomdata9225date, mapping = aes(x=temp_max, y=temp_min))+
+  geom_point(size=0.5, colour="purple", alpha=.5)+
+  
+
+roughplot1 <- ggplot(data=Bomdata9225date, mapping = aes(x=temp_max, y=temp_min))+
+  geom_point(size=0.5, colour="purple", alpha=.5)
+
+
+roughplot2 <- ggplot(data=Bomdata9225date, mapping = aes(x=temp_max, y=Solar_exposure))+
+  geom_point(size=0.5, colour="red", alpha=.5)
+
+roughplot3 <- ggplot(data=Bomdata9225date, mapping = aes(x=temp_max, y=Rainfall))+
+  geom_point(size=0.5, colour="blue", alpha=.5)
+
+
+roughplot4 <- ggplot(data=Bomdata9225, mapping = aes(x=temp_max, y=temp_min, 
+                                           size=Rainfall, colour=Solar_exposure))+
+  geom_point(alpha=.2)
+
+
+library(cowplot)
+plot_grid(roughplot1, roughplot2, roughplot3, roughplot4)
+  
 
